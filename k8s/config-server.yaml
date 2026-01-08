@@ -1,0 +1,44 @@
+# config-server.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: petclinic
+  labels:
+    app: config-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          # 👇 여기 숫자를 본인 AWS 계정 ID로 꼭 수정하세요!
+          image: 639242342449.dkr.ecr.ap-northeast-2.amazonaws.com/config-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
+          env:
+            - name: ENCRYPT_KEY
+              value: "my-secret-key" # 암호화 키 (실습용 임시값)
+            - name: SPRING_PROFILES_ACTIVE
+              value: "native" # git 대신 로컬 파일 시스템 사용 모드 (간단한 실습용)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: petclinic
+spec:
+  selector:
+    app: config-server
+  ports:
+    - protocol: TCP
+      port: 8888
+      targetPort: 8888
+  type: ClusterIP # 내부에서만 통신 (외부 노출 X)
